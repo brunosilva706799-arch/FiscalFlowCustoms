@@ -18,18 +18,20 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Create credentials file from secret
+      # --- [MODIFICADO] Este passo agora cria OS DOIS arquivos de credenciais ---
+      - name: Create credentials files from secrets
         env:
           FIREBASE_CREDS: ${{ secrets.FIREBASE_CREDENTIALS }}
-        run: echo "$FIREBASE_CREDS" > firebase_credentials.json
+          GDRIVE_CREDS: ${{ secrets.GOOGLE_DRIVE_CREDENTIALS }}
+        run: |
+          echo "$FIREBASE_CREDS" > firebase_credentials.json
+          echo "$GDRIVE_CREDS" > google_drive_credentials.json
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade cx_freeze lxml openpyxl Pillow ttkbootstrap requests firebase-admin bcrypt cryptography pytz pandas reportlab python-docx google-api-python-client google-auth-httplib2 google-auth-oauthlib
 
-      # --- [NOVO PASSO] ---
-      # Renomeia o .gitignore para que o cx_Freeze não o leia e ignore o arquivo de credenciais
       - name: Temporarily rename .gitignore
         run: mv .gitignore gitignore.bak
 
