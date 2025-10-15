@@ -208,3 +208,17 @@ __marimo__/
 
 # Chave secreta do Firebase - NÃO ENVIAR PARA O GITHUB
 firebase_credentials.json
+# Arquivos de credenciais e tokens. NUNCA enviar para o GitHub.
+token.json
+google_drive_credentials.json
+firebase_credentials.json
+
+# Arquivos de configuração e log locais
+config.ini
+debug.log
+
+# Pastas de build e cache do Python
+build/
+dist/
+__pycache__/
+*.pyc
