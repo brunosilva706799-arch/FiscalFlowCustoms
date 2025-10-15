@@ -18,7 +18,6 @@ jobs:
         with:
           python-version: '3.11'
 
-      # --- [MODIFICADO] Este passo agora cria OS DOIS arquivos de credenciais ---
       - name: Create credentials files from secrets
         env:
           FIREBASE_CREDS: ${{ secrets.FIREBASE_CREDENTIALS }}
@@ -35,11 +34,13 @@ jobs:
       - name: Temporarily rename .gitignore
         run: mv .gitignore gitignore.bak
 
-      - name: Build the application
-        run: python Setup.py build
+      # --- [CORRIGIDO] Comando de build alterado para o específico de macOS ---
+      - name: Build the application for macOS
+        run: python Setup.py bdist_mac
 
       - name: Upload macOS build artifact
         uses: actions/upload-artifact@v4
         with:
           name: CustomsFlow-macOS-Build
-          path: build/
+          # O resultado do bdist_mac fica em uma pasta diferente
+          path: build/*.dmg
