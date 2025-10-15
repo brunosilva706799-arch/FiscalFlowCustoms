@@ -19,12 +19,15 @@ jobs:
         with:
           python-version: '3.11'
 
-      # --- [NOVO PASSO] ---
-      # Pega o segredo do GitHub e cria o arquivo firebase_credentials.json na máquina virtual
       - name: Create credentials file from secret
         env:
           FIREBASE_CREDS: ${{ secrets.FIREBASE_CREDENTIALS }}
         run: echo "$FIREBASE_CREDS" > firebase_credentials.json
+
+      # --- [NOVO PASSO DE DIAGNÓSTICO] ---
+      # Lista todos os arquivos na pasta para verificarmos se o .json foi criado
+      - name: List files in directory
+        run: ls -l
 
       - name: Install dependencies
         run: |
