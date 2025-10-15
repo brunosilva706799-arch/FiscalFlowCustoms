@@ -34,13 +34,16 @@ jobs:
       - name: Temporarily rename .gitignore
         run: mv .gitignore gitignore.bak
 
-      # --- [CORRIGIDO] Comando de build alterado para o específico de macOS ---
       - name: Build the application for macOS
         run: python Setup.py bdist_mac
+
+      # --- [NOVO PASSO DE DIAGNÓSTICO] ---
+      # Lista o conteúdo da pasta 'build' para vermos o que foi gerado.
+      - name: List build directory contents
+        run: ls -R build
 
       - name: Upload macOS build artifact
         uses: actions/upload-artifact@v4
         with:
           name: CustomsFlow-macOS-Build
-          # O resultado do bdist_mac fica em uma pasta diferente
           path: build/*.dmg
