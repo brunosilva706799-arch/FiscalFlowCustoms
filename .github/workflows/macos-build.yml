@@ -39,7 +39,8 @@ jobs:
 
       # 5. Pega a pasta 'build' resultante e a disponibiliza para download
       - name: Upload macOS build artifact
-        uses: actions/upload-artifact@v3
+        # --- [CORRIGIDO] Versão atualizada de v3 para v4 ---
+        uses: actions/upload-artifact@v4
         with:
           name: CustomsFlow-macOS-Build
           path: build/
