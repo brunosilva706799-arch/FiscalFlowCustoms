@@ -36,14 +36,16 @@ jobs:
 
       - name: Build the application for macOS
         run: python Setup.py bdist_mac
+      
+      # --- [NOVO PASSO] ---
+      # Compacta o resultado .app em um arquivo .zip para facilitar o download
+      - name: Zip the .app bundle
+        run: ditto -c -k --sequesterRsrc --keepParent "build/Customs Flow-2.9.1.app" "build/CustomsFlow-macOS.zip"
 
-      # --- [NOVO PASSO DE DIAGNÓSTICO] ---
-      # Lista o conteúdo da pasta 'build' para vermos o que foi gerado.
-      - name: List build directory contents
-        run: ls -R build
-
+      # --- [CORRIGIDO] ---
+      # Agora, faz o upload do arquivo .zip que acabamos de criar
       - name: Upload macOS build artifact
         uses: actions/upload-artifact@v4
         with:
           name: CustomsFlow-macOS-Build
-          path: build/*.dmg
+          path: build/CustomsFlow-macOS.zip
