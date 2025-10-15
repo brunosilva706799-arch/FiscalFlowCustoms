@@ -5,24 +5,14 @@ from cx_Freeze import setup, Executable
 packages = [
     "lxml", "openpyxl", "PIL", "ttkbootstrap", "configparser", 
     "requests", "firebase_admin", "bcrypt", "cryptography", "pytz",
-    "pandas",         # Para importação de planilhas
-    "reportlab",      # Para exportação em PDF
-    "docx",           # Para exportação em Word
-    # --- [ADICIONADO] Bibliotecas do Google para o Drive ---
-    "googleapiclient", 
-    "google_auth_oauthlib",
-    "google_auth_httplib2"
+    "pandas", "reportlab", "docx",
+    "googleapiclient", "google_auth_oauthlib", "google_auth_httplib2"
 ]
 
 include_files = [
-    "logo.ico",
-    "logo_light.png", 
-    "logo_dark.png",
-    "logo_text_light.png", 
-    "logo_text_dark.png",
-    "logo_splash.png",
-    "firebase_credentials.json",
-    "google_drive_credentials.json", # Essencial para os anexos do suporte
+    "logo.ico", "logo_light.png", "logo_dark.png",
+    "logo_text_light.png", "logo_text_dark.png", "logo_splash.png",
+    "firebase_credentials.json", "google_drive_credentials.json",
     "test_assets/"
 ]
 
@@ -36,20 +26,23 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"
 
-# --- Definição do Executável ---
+# --- [CORRIGIDO] Definição do Executável agora é dinâmica ---
+# Define o nome do executável com base na plataforma
+target_name = "CustomsFlow.exe" if sys.platform == "win32" else "CustomsFlow"
+
 executables = [
     Executable(
         "main.py",
         base=base,
-        target_name="CustomsFlow.exe", # <-- [ALTERADO]
+        target_name=target_name, # Usa o nome dinâmico
         icon="logo.ico"
     )
 ]
 
 # --- Comando Final de Setup ---
 setup(
-    name="Customs Flow", # <-- [ALTERADO]
-    version="2.9.1",      # <-- [ALTERADO]
+    name="Customs Flow",
+    version="2.9.1",
     description="Ferramenta de Comércio Exterior com módulos de Extração, DP e Suporte.",
     options={"build_exe": build_exe_options},
     executables=executables
