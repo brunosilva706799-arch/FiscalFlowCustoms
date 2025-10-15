@@ -1,45 +1,40 @@
 # Nome do nosso robô (workflow)
 name: Build macOS Application
 
-# Define quando o robô deve ser executado
 on:
-  # Executa sempre que você fizer um 'push' para a branch 'main'
   push:
     branches: [ "main" ]
-  # Permite que você execute manualmente pela interface do GitHub
   workflow_dispatch:
 
-# Define as tarefas que o robô irá executar
 jobs:
   build-macos:
-    # Diz ao GitHub para usar uma máquina virtual com o macOS mais recente
     runs-on: macos-latest
 
-    # Define a sequência de passos
     steps:
-      # 1. Baixa o código do seu repositório para a máquina virtual
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2. Configura o ambiente Python na máquina virtual
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.11' # Usa uma versão estável do Python
+          python-version: '3.11'
 
-      # 3. Instala todas as bibliotecas que o nosso programa precisa
+      # --- [NOVO PASSO] ---
+      # Pega o segredo do GitHub e cria o arquivo firebase_credentials.json na máquina virtual
+      - name: Create credentials file from secret
+        env:
+          FIREBASE_CREDS: ${{ secrets.FIREBASE_CREDENTIALS }}
+        run: echo "$FIREBASE_CREDS" > firebase_credentials.json
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade cx_freeze lxml openpyxl Pillow ttkbootstrap requests firebase-admin bcrypt cryptography pytz pandas reportlab python-docx google-api-python-client google-auth-httplib2 google-auth-oauthlib
 
-      # 4. Executa o comando de build para criar a aplicação para Mac
       - name: Build the application
         run: python Setup.py build
 
-      # 5. Pega a pasta 'build' resultante e a disponibiliza para download
       - name: Upload macOS build artifact
-        # --- [CORRIGIDO] Versão atualizada de v3 para v4 ---
         uses: actions/upload-artifact@v4
         with:
           name: CustomsFlow-macOS-Build
