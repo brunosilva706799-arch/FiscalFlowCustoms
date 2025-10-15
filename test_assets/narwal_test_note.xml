@@ -1,0 +1,118 @@
+<nfeProc xmlns="http://www.portalfiscal.inf.br/nfe" versao="4.00">
+<NFe>
+<infNFe versao="4.00" Id="NFe11250720104331000260550010000013151000007327">
+<ide>
+<cUF>11</cUF>
+<cNF>00000732</cNF>
+<natOp>3102 - COMPRA PARA COMERCIALIZACAO</natOp>
+<mod>55</mod>
+<serie>1</serie>
+<nNF>1315</nNF>
+<dhEmi>2025-07-07T16:12:52-03:00</dhEmi>
+<dhSaiEnt>2025-07-07T16:12:52-03:00</dhSaiEnt>
+<tpNF>0</tpNF>
+<idDest>3</idDest>
+<cMunFG>1100205</cMunFG>
+<tpImp>1</tpImp>
+<tpEmis>1</tpEmis>
+<cDV>7</cDV>
+<tpAmb>1</tpAmb>
+<finNFe>1</finNFe>
+<indFinal>0</indFinal>
+<indPres>9</indPres>
+<indIntermed>0</indIntermed>
+<procEmi>0</procEmi>
+<verProc>4.00</verProc>
+</ide>
+<emit>
+<CNPJ>20104331000260</CNPJ>
+<xNome>CUSTOMS TRADING - FILIAL</xNome>
+<xFant>CUSTOMS TRADING</xFant>
+<enderEmit>
+<xLgr>AVENIDA JATUARANA</xLgr>
+<nro>4756</nro>
+<xBairro>CALADINHO</xBairro>
+<cMun>1100205</cMun>
+<xMun>Porto Velho</xMun>
+<UF>RO</UF>
+<CEP>76808110</CEP>
+<cPais>1058</cPais>
+<xPais>BRASIL</xPais>
+</enderEmit>
+<IE>00000006077374</IE>
+<CRT>3</CRT>
+</emit>
+<dest>
+<idEstrangeiro>MA(D)20250402CO</idEstrangeiro>
+<xNome>Shenzhen Maisney Technology Co., Ltd</xNome>
+<enderDest>
+<xLgr>F23,Building1, New City Garden ,Dalang South Road,</xLgr>
+<nro>F23</nro>
+<xBairro>Long Hua District</xBairro>
+<cMun>9999999</cMun>
+<xMun>Exterior</xMun>
+<UF>EX</UF>
+<CEP>51811100</CEP>
+<cPais>1600</cPais>
+<xPais>CHINA</xPais>
+</enderDest>
+<indIEDest>9</indIEDest>
+</dest>
+<det nItem="1">
+<prod>
+<cProd>SMT0001</cProd>
+<cEAN>SEM GTIN</cEAN>
+<xProd>PH3.9 LED CABINET WITH ACESSORIES</xProd>
+<NCM>85299020</NCM>
+<CFOP>3102</CFOP>
+<uCom>M2</uCom>
+<qCom>17.0000</qCom>
+<vUnCom>1814.4072538235</vUnCom>
+<vProd>30844.92</vProd>
+<cEANTrib>SEM GTIN</cEANTrib>
+<uTrib>KG</uTrib>
+<qTrib>726.0000</qTrib>
+<vUnTrib>42.4861202686</vUnTrib>
+<vOutro>6831.39</vOutro>
+<indTot>1</indTot>
+<DI>
+<nDI>2514228475</nDI>
+<dDI>2025-06-30</dDI>
+<xLocDesemb>VITORIA</xLocDesemb>
+<UFDesemb>ES</UFDesemb>
+<dDesemb>2025-06-30</dDesemb>
+<tpViaTransp>1</tpViaTransp>
+<vAFRMM>187.10</vAFRMM>
+<tpIntermedio>1</tpIntermedio>
+<CNPJ>20104331000260</CNPJ>
+<UFTerceiro>RO</UFTerceiro>
+<cExportador>0c39bc4c-9d73-462c-9c56-2aa9db5aa56f</cExportador>
+<adi>
+<nAdicao>1</nAdicao>
+<nSeqAdic>1</nSeqAdic>
+<cFabricante>e778b074-bee9-430b-94aa-092695c8af03</cFabricante>
+</adi>
+</DI>
+<nItemPed>0</nItemPed>
+</prod>
+<imposto>
+<vTotTrib>5937.65</vTotTrib>
+<ICMS><ICMS51><orig>1</orig><CST>51</CST><modBC>3</modBC><vBC>0.00</vBC><pICMS>0.0000</pICMS><vICMSOp>0.00</vICMSOp><pDif>100.0000</pDif><vICMSDif>0.00</vICMSDif><vICMS>0.00</vICMS></ICMS51></ICMS>
+<IPI><cEnq>999</cEnq><IPITrib><CST>00</CST><vBC>30844.92</vBC><pIPI>7.5000</pIPI><vIPI>2313.37</vIPI></IPITrib></IPI>
+<II><vBC>0.00</vBC><vDespAdu>341.33</vDespAdu><vII>0.00</vII><vIOF>0.00</vIOF></II>
+<PIS><PISOutr><CST>50</CST><vBC>30844.92</vBC><pPIS>2.1000</pPIS><vPIS>647.74</vPIS></PISOutr></PIS>
+<COFINS><COFINSOutr><CST>50</CST><vBC>30844.92</vBC><pCOFINS>9.6500</pCOFINS><vCOFINS>2976.54</vCOFINS></COFINSOutr></COFINS>
+</imposto>
+</det>
+<total>
+<ICMSTot>
+<vBC>0.00</vBC><vICMS>0.00</vICMS><vICMSDeson>0.00</vICMSDeson><vFCPUFDest>0.00</vFCPUFDest><vICMSUFDest>0.00</vICMSUFDest><vICMSUFRemet>0.00</vICMSUFRemet><vFCP>0.00</vFCP><vBCST>0.00</vBCST><vST>0.00</vST><vFCPST>0.00</vFCPST><vFCPSTRet>0.00</vFCPSTRet><vProd>30844.92</vProd><vFrete>0.00</vFrete><vSeg>0.00</vSeg><vDesc>0.00</vDesc><vII>0.00</vII><vIPI>2313.37</vIPI><vIPIDevol>0.00</vIPIDevol><vPIS>647.74</vPIS><vCOFINS>2976.54</vCOFINS><vOutro>6831.39</vOutro><vNF>43613.96</vNF><vTotTrib>5937.65</vTotTrib>
+</ICMSTot>
+</total>
+<transp><modFrete>0</modFrete><vol><qVol>9</qVol><esp>OUTROS</esp><pesoL>726.000</pesoL><pesoB>750.000</pesoB></vol></transp>
+<pag><detPag><tPag>90</tPag><vPag>0.00</vPag></detPag></pag>
+<infAdic><infCpl>NºDA DI=25/1422847-5 DATA DE REGISTRO DA DI 30/06/2025 VALOR PIS=R$ 647,74 VALOR COFINS=R$ 2.976,54 VALOR SISCOMEX=R$ 154,23 VALOR AFRMM=R$0 VALOR CAMBIO=R$ 5,4759. OUTRAS DESPESAS: ... ICMS DIFERIDO ... LEDMIDIAIMP0022025.</infCpl></infAdic>
+<infRespTec><CNPJ>15426652000160</CNPJ><xContato>Luiz Silva</xContato><email>ti@narwalsistemas.com.br</email><fone>4834339753</fone></infRespTec>
+</infNFe>
+</NFe>
+</nfeProc>

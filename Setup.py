@@ -2,17 +2,28 @@ import sys
 from cx_Freeze import setup, Executable
 
 # --- Configurações do Build ---
-# ADICIONADO 'requests' à lista de pacotes
-packages = ["lxml", "openpyxl", "PIL", "ttkbootstrap", "configparser", "requests"]
+packages = [
+    "lxml", "openpyxl", "PIL", "ttkbootstrap", "configparser", 
+    "requests", "firebase_admin", "bcrypt", "cryptography", "pytz",
+    "pandas",         # Para importação de planilhas
+    "reportlab",      # Para exportação em PDF
+    "docx",           # Para exportação em Word
+    # --- [ADICIONADO] Bibliotecas do Google para o Drive ---
+    "googleapiclient", 
+    "google_auth_oauthlib",
+    "google_auth_httplib2"
+]
 
-# Inclui todos os arquivos de imagem necessários
 include_files = [
     "logo.ico",
     "logo_light.png", 
     "logo_dark.png",
     "logo_text_light.png", 
     "logo_text_dark.png",
-    "logo_splash.png"
+    "logo_splash.png",
+    "firebase_credentials.json",
+    "google_drive_credentials.json", # Essencial para os anexos do suporte
+    "test_assets/"
 ]
 
 build_exe_options = {
@@ -30,16 +41,16 @@ executables = [
     Executable(
         "main.py",
         base=base,
-        target_name="FiscalFlowCustoms.exe",
+        target_name="CustomsFlow.exe", # <-- [ALTERADO]
         icon="logo.ico"
     )
 ]
 
 # --- Comando Final de Setup ---
 setup(
-    name="Fiscal Flow - Customs",
-    version="2.3", # Versão da nova atualização
-    description="Snapshot 2.3 - Sistema de Atualização Automática",
+    name="Customs Flow", # <-- [ALTERADO]
+    version="2.9.1",      # <-- [ALTERADO]
+    description="Ferramenta de Comércio Exterior com módulos de Extração, DP e Suporte.",
     options={"build_exe": build_exe_options},
     executables=executables
 )
