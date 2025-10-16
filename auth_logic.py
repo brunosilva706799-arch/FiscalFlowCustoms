@@ -417,7 +417,8 @@ def send_communication_email(recipient_list, subject, body):
     if not all([sender_email, password, server, port]): return (False, "Configuração de SMTP incompleta.")
     msg = EmailMessage(); msg['Subject'] = subject; msg['From'] = sender_email
     msg['Bcc'] = ", ".join(recipient_list)
-    msg.set_content(f"<html><body>{body.replace('\n', '<br>')}</body></html>", subtype='html')
+    html_body = body.replace('\n', '<br>')
+    msg.set_content(f"<html><body>{html_body}</body></html>", subtype='html')
     try:
         context = ssl.create_default_context()
         with smtplib.SMTP(server, int(port), timeout=15) as s:
