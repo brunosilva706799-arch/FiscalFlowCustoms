@@ -7,7 +7,10 @@ on:
 
 jobs:
   build-macos:
-    runs-on: macos-latest
+    # --- [CORRIGIDO] ---
+    # Força o uso de uma máquina virtual com macOS 12 (Intel x86_64)
+    # para garantir a compatibilidade com Macs mais antigos.
+    runs-on: macos-12
 
     steps:
       - name: Checkout repository
@@ -36,14 +39,10 @@ jobs:
 
       - name: Build the application for macOS
         run: python Setup.py bdist_mac
-      
-      # --- [NOVO PASSO] ---
-      # Compacta o resultado .app em um arquivo .zip para facilitar o download
-      - name: Zip the .app bundle
-        run: ditto -c -k --sequesterRsrc --keepParent "build/Customs Flow-2.9.1.app" "build/CustomsFlow-macOS.zip"
 
-      # --- [CORRIGIDO] ---
-      # Agora, faz o upload do arquivo .zip que acabamos de criar
+      - name: Zip the .dmg bundle for upload
+        run: ditto -c -k --sequesterRsrc --keepParent "build/Customs Flow-2.9.1.dmg" "build/CustomsFlow-macOS.zip"
+
       - name: Upload macOS build artifact
         uses: actions/upload-artifact@v4
         with:
