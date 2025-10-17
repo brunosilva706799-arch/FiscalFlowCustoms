@@ -8,15 +8,6 @@ packages = [
     "requests", "firebase_admin", "bcrypt", "cryptography", "pytz",
     "pandas", "reportlab", "docx",
     "googleapiclient", "google_auth_oauthlib", "google_auth_httplib2",
-    
-    # --- [ADICIONADO] Nossos módulos de lógica para garantir a inclusão ---
-    "core_logic",
-    "auth_logic",
-    "drive_logic",
-    "dp_logic",
-    "client_logic",
-    "support_logic",
-    "report_logic"
 ]
 
 include_files = [
@@ -26,9 +17,19 @@ include_files = [
     "test_assets/"
 ]
 
+# --- [CORRIGIDO] Adiciona a opção 'includes' para forçar a inclusão dos módulos ---
 build_exe_options = {
     "packages": packages,
     "include_files": include_files,
+    "includes": [
+        "core_logic",
+        "auth_logic",
+        "drive_logic",
+        "dp_logic",
+        "client_logic",
+        "support_logic",
+        "report_logic"
+    ],
 }
 
 # --- Base da Interface Gráfica ---
