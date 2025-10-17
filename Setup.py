@@ -3,10 +3,20 @@ from cx_Freeze import setup, Executable
 
 # --- Configurações do Build ---
 packages = [
+    # Bibliotecas de terceiros
     "lxml", "openpyxl", "PIL", "ttkbootstrap", "configparser", 
     "requests", "firebase_admin", "bcrypt", "cryptography", "pytz",
     "pandas", "reportlab", "docx",
-    "googleapiclient", "google_auth_oauthlib", "google_auth_httplib2"
+    "googleapiclient", "google_auth_oauthlib", "google_auth_httplib2",
+    
+    # --- [ADICIONADO] Nossos módulos de lógica para garantir a inclusão ---
+    "core_logic",
+    "auth_logic",
+    "drive_logic",
+    "dp_logic",
+    "client_logic",
+    "support_logic",
+    "report_logic"
 ]
 
 include_files = [
@@ -26,15 +36,14 @@ base = None
 if sys.platform == "win32":
     base = "Win32GUI"
 
-# --- [CORRIGIDO] Definição do Executável agora é dinâmica ---
-# Define o nome do executável com base na plataforma
+# --- Definição do Executável ---
 target_name = "CustomsFlow.exe" if sys.platform == "win32" else "CustomsFlow"
 
 executables = [
     Executable(
         "main.py",
         base=base,
-        target_name=target_name, # Usa o nome dinâmico
+        target_name=target_name,
         icon="logo.ico"
     )
 ]
