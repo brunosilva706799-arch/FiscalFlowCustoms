@@ -1,3 +1,4 @@
+# Nome do nosso robô (workflow)
 name: Build macOS Application
 
 on:
@@ -7,6 +8,7 @@ on:
 
 jobs:
   build-macos:
+    # Usa a máquina virtual mais recente do macOS (Apple Silicon)
     runs-on: macos-latest
 
     steps:
@@ -37,15 +39,13 @@ jobs:
       - name: Build the application for macOS
         run: python Setup.py bdist_mac
 
-      # --- [NOVO PASSO DE DIAGNÓSTICO] ---
-      # Lista o conteúdo da pasta 'build' para vermos o que foi gerado.
-      - name: List build directory contents
-        run: ls -R build
+      # --- [CORRIGIDO] ---
+      # Compacta o resultado .app (com o nome correto) em um arquivo .zip para facilitar o download
+      - name: Zip the .app bundle
+        run: ditto -c -k --sequesterRsrc --keepParent "build/customs flow-2.9.1.app" "build/CustomsFlow-macOS.zip"
 
-      - name: Zip the .app bundle for upload
-        # Tentamos compactar o .app que provavelmente foi gerado
-        run: ditto -c -k --sequesterRsrc --keepParent "build/Customs Flow.app" "build/CustomsFlow-macOS.zip"
-
+      # --- [CORRIGIDO] ---
+      # Faz o upload do arquivo .zip que acabamos de criar
       - name: Upload macOS build artifact
         uses: actions/upload-artifact@v4
         with:
