@@ -11,14 +11,18 @@ from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.errors import HttpError
 
-# --- Determina o caminho absoluto para a pasta do projeto ---
-BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+# --- [NOVO] Variável global para armazenar a função 'resource_path' ---
+_get_resource_path = None
+
+def set_resource_path_getter(getter_func):
+    """
+    Recebe a função 'resource_path' do main.py para ser usada neste módulo.
+    """
+    global _get_resource_path
+    _get_resource_path = getter_func
 
 # --- CONFIGURAÇÕES ---
 SCOPES = ['https://www.googleapis.com/auth/drive']
-CREDENTIALS_FILE = os.path.join(BASE_DIR, 'google_drive_credentials.json')
-TOKEN_FILE = os.path.join(BASE_DIR, 'token.json')
-# --- [ALTERADO] Nome da pasta atualizado ---
 DRIVE_FOLDER_NAME = 'DataBase CustomsFlow'
 
 FOLDER_ID_CACHE = None
@@ -34,8 +38,16 @@ def get_drive_service():
         return SERVICE_CACHE, None
         
     creds = None
-    if os.path.exists(TOKEN_FILE):
-        with open(TOKEN_FILE, 'rb') as token:
+    
+    # --- [MODIFICADO] Usa a nova função 'GPS' para encontrar os arquivos ---
+    if not _get_resource_path:
+        return None, "Erro crítico: A função de localização de recursos (resource_path) não foi configurada."
+        
+    token_file = _get_resource_path('token.json')
+    credentials_file = _get_resource_path('google_drive_credentials.json')
+
+    if os.path.exists(token_file):
+        with open(token_file, 'rb') as token:
             creds = pickle.load(token)
 
     if not creds or not creds.valid:
@@ -44,17 +56,22 @@ def get_drive_service():
                 creds.refresh(Request())
             except Exception as e:
                 print(f"Erro ao atualizar token, solicitando novo login: {e}")
+                # Se o refresh falhar, força um novo login limpando as credenciais antigas
+                if os.path.exists(token_file):
+                    os.remove(token_file)
                 creds = None
-        else:
+        
+        # Se ainda não tiver credenciais, faz o fluxo de login
+        if not creds:
             try:
-                flow = InstalledAppFlow.from_client_secrets_file(CREDENTIALS_FILE, SCOPES)
+                flow = InstalledAppFlow.from_client_secrets_file(credentials_file, SCOPES)
                 creds = flow.run_local_server(port=0)
             except FileNotFoundError:
-                return None, f"Erro Crítico: O arquivo '{os.path.basename(CREDENTIALS_FILE)}' não foi encontrado na pasta do projeto. Por favor, verifique."
+                return None, f"Erro Crítico: O arquivo '{os.path.basename(credentials_file)}' não foi encontrado. Por favor, verifique."
             except Exception as e:
                 return None, f"Erro ao obter credenciais. Verifique o arquivo de credenciais. Erro: {e}"
 
-        with open(TOKEN_FILE, 'wb') as token:
+        with open(token_file, 'wb') as token:
             pickle.dump(creds, token)
     
     try:

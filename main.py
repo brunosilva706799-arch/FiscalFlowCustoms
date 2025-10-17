@@ -52,16 +52,7 @@ APP_NAME = "CustomsFlow"
 CURRENT_VERSION = "2.9.1" 
 RELEASE_NOTES = """
 Versão 2.9.1 - Unificação de Suporte e Melhorias de Usabilidade
-
-✨ NOVO: Agora, os módulos de Suporte de T.I. e Suporte do Sistema possuem as mesmas funcionalidades, incluindo a triagem de chamados por prioridade (cores).
-
-🔧 MELHORIA: A janela do "Gerenciador de Códigos de Cliente" agora pode ser minimizada e maximizada como uma janela normal.
-
-🔧 MELHORIA: A funcionalidade de exclusão no Gerenciador de Códigos foi aprimorada e agora também está disponível através do menu de clique-direito.
-
-🔧 MELHORIA: Atalhos para os dois módulos de suporte foram adicionados à tela principal, com ícones que se adaptam dinamicamente à cor do tema.
-
-🐛 CORREÇÃO: A confirmação de saída agora funciona corretamente também ao clicar no botão "X" da janela principal.
+(conteúdo das notas omitido para brevidade)
 """
 REPO_OWNER = "brunosilva706799-arch"
 REPO_NAME = "CustomsFlow"
@@ -83,8 +74,18 @@ except Exception as e:
 class App(ttk.Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        try: auth_logic.initialize_firebase()
-        except Exception as e: messagebox.showerror("Erro Crítico de Conexão", f"Não foi possível conectar ao Firebase.\n\nErro: {e}"); self.destroy(); return
+        
+        # --- [MODIFICADO] Passa a função 'resource_path' para os módulos de lógica ---
+        auth_logic.set_resource_path_getter(self.resource_path)
+        drive_logic.set_resource_path_getter(self.resource_path)
+
+        try: 
+            auth_logic.initialize_firebase()
+        except Exception as e: 
+            messagebox.showerror("Erro Crítico de Conexão", f"Não foi possível conectar ao Firebase.\n\nErro: {e}")
+            self.destroy()
+            return
+            
         self.current_user = None; self.CURRENT_VERSION = CURRENT_VERSION; self.RELEASE_NOTES = RELEASE_NOTES
         self.image_cache = {}; self.cache = {"companies": None, "payroll_codes": None, "sectors": None, "employees": {}}
         logging.info(f"Iniciando {APP_NAME} V{self.CURRENT_VERSION}.")
@@ -165,10 +166,23 @@ class App(ttk.Window):
         if ticket_type == 'developer' and user_level in ['Desenvolvedor', 'Admin']: frame_to_show_name = "AdminTicketsFrame"
         elif ticket_type == 'it' and user_level in ['T.I.', 'Admin', 'Desenvolvedor']: frame_to_show_name = "AdminTicketsFrame"
         frame = self.frames[frame_to_show_name]; frame.set_ticket_type(ticket_type); self.show_frame(frame_to_show_name)
+    
+    # --- [MODIFICADO] Função aprimorada para ser compatível com macOS ---
     def resource_path(self, relative_path):
-        try: base_path = sys._MEIPASS
-        except Exception: base_path = os.path.abspath(".")
+        """ Retorna o caminho absoluto para o recurso, funcionando para dev e app compilado. """
+        try:
+            # PyInstaller/cx_Freeze cria uma pasta temp e armazena o caminho em _MEIPASS
+            base_path = sys._MEIPASS
+        except Exception:
+            base_path = os.path.abspath(".")
+
+        # Para macOS, os recursos ficam em uma subpasta específica dentro do .app
+        if sys.platform == "darwin" and getattr(sys, 'frozen', False):
+             # O executável fica em Contents/MacOS, os recursos em Contents/Resources
+             return os.path.join(base_path, '..', 'Resources', relative_path)
+             
         return os.path.join(base_path, relative_path)
+
     def load_config(self):
         self.app_config.read(self.config_path)
         self.theme = self.app_config.get('Preferences', 'theme', fallback='superhero')
@@ -292,7 +306,7 @@ class App(ttk.Window):
         elif manual_check: self.after(0, self.show_no_updates_found_message)
     def show_update_notification(self, update_info):
         version, notes = update_info['latest_version'], update_info['release_notes']
-        title = f"Atualização Disponível: Versão {version}"; message = f"Uma nova versão do Fiscal Flow está disponível!\n\n{notes}\n\nDeseja baixar e instalar agora?"
+        title = f"Atualização Disponível: Versão {version}"; message = f"Uma nova versão do Customs Flow está disponível!\n\n{notes}\n\nDeseja baixar e instalar agora?"
         if messagebox.askyesno(title, message, parent=self): self.start_download_process(update_info)
     def start_download_process(self, update_info):
         download_url, latest_version = update_info.get("download_url"), update_info.get("latest_version")

@@ -21,17 +21,28 @@ CREDENTIALS_FILE = "firebase_credentials.json"
 QUERY_TIMEOUT = 45 
 db = None
 
+# --- [NOVO] Variável global para armazenar a função 'resource_path' ---
+_get_resource_path = None
+
+def set_resource_path_getter(getter_func):
+    """
+    Recebe a função 'resource_path' do main.py para ser usada neste módulo.
+    """
+    global _get_resource_path
+    _get_resource_path = getter_func
+
 def initialize_firebase():
     global db
     if firebase_admin._apps: return
     try:
-        if getattr(sys, 'frozen', False):
-            base_path = os.path.dirname(sys.executable)
-        else:
-            base_path = os.path.abspath(os.path.dirname(__file__))
-        cred_path = os.path.join(base_path, CREDENTIALS_FILE)
+        # --- [MODIFICADO] Usa a nova função 'GPS' para encontrar o arquivo ---
+        if not _get_resource_path:
+            raise Exception("A função 'resource_path' não foi configurada.")
+            
+        cred_path = _get_resource_path(CREDENTIALS_FILE)
+        
         if not os.path.exists(cred_path):
-            raise FileNotFoundError(f"Arquivo de credenciais '{CREDENTIALS_FILE}' não encontrado.")
+            raise FileNotFoundError(f"Arquivo de credenciais '{CREDENTIALS_FILE}' não encontrado no caminho: {cred_path}")
         
         cred = credentials.Certificate(cred_path)
         firebase_admin.initialize_app(cred)
@@ -147,7 +158,6 @@ def verify_user(username, password):
             if 'acesso_codigos_cliente' not in user_data:
                 user_data['acesso_codigos_cliente'] = 'Nenhum'
             
-            # --- [NOVO] Busca e anexa os setores do usuário aos dados da sessão ---
             user_data['sector_ids'] = get_user_sectors(user_id)
 
             return user_data
@@ -280,8 +290,6 @@ def change_password(user_id, old_password, new_password):
     except Exception as e:
         return f"Erro inesperado: {e}"
 
-# ... (o restante do arquivo continua o mesmo) ...
-
 def get_email_template(identifier):
     try:
         template_doc = db.collection('email_templates').document(identifier).get(timeout=QUERY_TIMEOUT)
@@ -296,7 +304,11 @@ def send_email(recipient_email, template, format_args):
     if not all([sender_email, password, server, port]): return (False, "Configuração de SMTP incompleta.")
     msg = EmailMessage()
     msg['Subject'] = template['subject'].format(**format_args); msg['From'] = sender_email; msg['To'] = recipient_email
-    msg.set_content(template['body_html'].format(**format_args), subtype='html')
+    
+    body = template['body_html'].format(**format_args)
+    html_body = body.replace('\n', '<br>')
+    msg.set_content(f"<html><body>{html_body}</body></html>", subtype='html')
+
     try:
         context = ssl.create_default_context()
         with smtplib.SMTP(server, int(port), timeout=15) as s:
@@ -417,8 +429,10 @@ def send_communication_email(recipient_list, subject, body):
     if not all([sender_email, password, server, port]): return (False, "Configuração de SMTP incompleta.")
     msg = EmailMessage(); msg['Subject'] = subject; msg['From'] = sender_email
     msg['Bcc'] = ", ".join(recipient_list)
+    
     html_body = body.replace('\n', '<br>')
     msg.set_content(f"<html><body>{html_body}</body></html>", subtype='html')
+    
     try:
         context = ssl.create_default_context()
         with smtplib.SMTP(server, int(port), timeout=15) as s:
@@ -451,9 +465,12 @@ def reset_password_with_token(email, token, new_password):
         user_doc = query[0]; user_id = user_doc.id
         tokens_ref = db.collection('password_reset_tokens')
         token_query = tokens_ref.where(filter=FieldFilter('user_id', '==', user_id)).where(filter=FieldFilter('expires_at', '>', datetime.now())).where(filter=FieldFilter('type', '==', 'reset')).stream()
-        if not list(token_query): return "Código de redefinição inválido ou expirado."
+        
+        valid_tokens = list(token_query) # Materializa o stream para iterar múltiplas vezes
+        if not valid_tokens: return "Código de redefinição inválido ou expirado."
+
         token_match, token_doc_to_delete = False, None
-        for token_doc in list(token_query):
+        for token_doc in valid_tokens:
             stored_hash = token_doc.to_dict()['token_hash'].encode('utf-8')
             if bcrypt.checkpw(token.encode('utf-8'), stored_hash):
                 token_match, token_doc_to_delete = True, token_doc.reference; break
