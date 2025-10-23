@@ -40,9 +40,9 @@ jobs:
         run: python Setup.py bdist_mac
 
       # --- [CORRIGIDO] ---
-      # Compacta o resultado .app (com o nome correto) em um arquivo .zip para facilitar o download
+      # Compacta o resultado .app (do diretório 'dist' com o nome correto)
       - name: Zip the .app bundle
-        run: ditto -c -k --sequesterRsrc --keepParent "build/customs flow-2.9.1.app" "build/CustomsFlow-macOS.zip"
+        run: ditto -c -k --sequesterRsrc --keepParent "dist/CustomsFlow.app" "build/CustomsFlow-macOS.zip"
 
       # --- [CORRIGIDO] ---
       # Faz o upload do arquivo .zip que acabamos de criar
