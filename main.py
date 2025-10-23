@@ -1,6 +1,7 @@
 # =============================================================================
-# --- ARQUIVO: main.py (INTEGRADO COM PAINEL DE ATENDIMENTO) ---
-# (Versão atualizada para 2.9.2 e Release Notes adicionadas)
+# --- ARQUIVO: main.py ---
+# (Correção 8: Simplificada a função resource_path para macOS)
+# (Versão 2.9.2 e Notas mantidas)
 # =============================================================================
 
 import os
@@ -28,11 +29,11 @@ except ImportError:
 
 from ui.frames_auth import (LoginFrame, SetPasswordFrame, ResetPasswordFrame, WhatsNewFrame)
 from ui.frames_app import (HomeFrame, ExtractionToolsFrame, NFeToolFrame)
-from ui.frames_dp import (DPMainFrame, DPLançamentosToolFrame, 
+from ui.frames_dp import (DPMainFrame, DPLançamentosToolFrame,
                           DPLancamentoColabFrame, DPLancamentoRubricaFrame)
 from ui.frames_support import (SupportChoiceFrame, UserTicketsFrame, AdminTicketsFrame)
 
-from ui.dialogs_user import (ChangePasswordDialog, RequestAccessDialog, 
+from ui.dialogs_user import (ChangePasswordDialog, RequestAccessDialog,
                              RequestsWindow, UserManagementWindow, SectorManagementWindow,
                              TemplateEditorWindow, CommunicationWindow)
 from ui.dialogs_flow import (UpdateDownloadWindow, DashboardWindow, PreviewWindow)
@@ -46,13 +47,12 @@ import auth_logic
 import dp_logic
 import support_logic
 import client_logic
-import report_logic 
-# --- [CORRIGIDO] --- Adiciona a importação que estava faltando ---
-import drive_logic
+import report_logic
+import drive_logic # Mantida a importação corrigida
 
 # --- CONSTANTES GLOBAIS ---
 APP_NAME = "CustomsFlow"
-CURRENT_VERSION = "2.9.2" # <--- VERSÃO ATUALIZADA
+CURRENT_VERSION = "2.9.2"
 RELEASE_NOTES = """
 Versão 2.9.2 - Correções Críticas na Extração e Geração de Excel
 
@@ -95,17 +95,17 @@ except Exception as e:
 class App(ttk.Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        
+
         auth_logic.set_resource_path_getter(self.resource_path)
         drive_logic.set_resource_path_getter(self.resource_path)
 
-        try: 
+        try:
             auth_logic.initialize_firebase()
-        except Exception as e: 
+        except Exception as e:
             messagebox.showerror("Erro Crítico de Conexão", f"Não foi possível conectar ao Firebase.\n\nErro: {e}")
             self.destroy()
             return
-            
+
         self.current_user = None; self.CURRENT_VERSION = CURRENT_VERSION; self.RELEASE_NOTES = RELEASE_NOTES
         self.image_cache = {}; self.cache = {"companies": None, "payroll_codes": None, "sectors": None, "employees": {}}
         logging.info(f"Iniciando {APP_NAME} V{self.CURRENT_VERSION}.")
@@ -116,7 +116,7 @@ class App(ttk.Window):
         container = ttk.Frame(self); container.pack(side="top", fill="both", expand=True)
         container.grid_rowconfigure(0, weight=1); container.grid_columnconfigure(0, weight=1)
         self.frames = {}
-        
+
         auth_frames = (LoginFrame, SetPasswordFrame, ResetPasswordFrame)
         app_frames = (HomeFrame, ExtractionToolsFrame, NFeToolFrame)
         dp_frames = (DPMainFrame, DPLançamentosToolFrame, DPLancamentoColabFrame, DPLancamentoRubricaFrame)
@@ -131,9 +131,9 @@ class App(ttk.Window):
         frame.grid(row=0, column=0, sticky="nsew")
 
         self.protocol("WM_DELETE_WINDOW", self.quit_app)
-        
+
         self.start_splash_screen()
-    
+
     def get_from_cache(self, key, sub_key=None, logic_function=None, force_refresh=False):
         cache_target = self.cache[key]; data_to_check = cache_target.get(sub_key) if sub_key else cache_target
         if data_to_check is None or force_refresh:
@@ -186,18 +186,21 @@ class App(ttk.Window):
         if ticket_type == 'developer' and user_level in ['Desenvolvedor', 'Admin']: frame_to_show_name = "AdminTicketsFrame"
         elif ticket_type == 'it' and user_level in ['T.I.', 'Admin', 'Desenvolvedor']: frame_to_show_name = "AdminTicketsFrame"
         frame = self.frames[frame_to_show_name]; frame.set_ticket_type(ticket_type); self.show_frame(frame_to_show_name)
-    
+
+    # --- [INÍCIO DA CORREÇÃO 8] ---
+    # Função resource_path simplificada para buscar na pasta do executável
     def resource_path(self, relative_path):
         """ Retorna o caminho absoluto para o recurso, funcionando para dev e app compilado. """
         try:
+            # sys._MEIPASS aponta para a pasta temporária onde o PyInstaller extrai tudo,
+            # ou para a pasta base no cx_Freeze build (incluindo dentro do .app no macOS).
             base_path = sys._MEIPASS
         except Exception:
+            # Se não estiver compilado, usa o diretório do script main.py.
             base_path = os.path.abspath(".")
 
-        if sys.platform == "darwin" and getattr(sys, 'frozen', False):
-             return os.path.join(base_path, '..', 'Resources', relative_path)
-             
         return os.path.join(base_path, relative_path)
+    # --- [FIM DA CORREÇÃO 8] ---
 
     def load_config(self):
         self.app_config.read(self.config_path)
