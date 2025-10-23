@@ -1,5 +1,7 @@
 # =============================================================================
-# --- ARQUIVO: core_logic.py (COM EXTRAÇÃO DE PROCESSO APRIMORADA) ---
+# --- ARQUIVO: core_logic.py ---
+# (Correção 6: Aplicada a lógica de busca por ano '\d{4}' no fallback)
+# (Correções 1 e 2 do Excel mantidas)
 # =============================================================================
 import os
 import re
@@ -172,22 +174,53 @@ def _extrair_dados_autorizada(root_xml, namespace, arquivo_xml):
 
     nome_processo = 'N/A'
     padrao_ideal = r'([A-Z0-9]+(?:IMP|EXP)\d{3}\d{4})'
-    match_ideal = re.search(padrao_ideal, texto_completo_adicional.replace("/", "").replace(".", "").replace("-", ""), re.IGNORECASE)
+    
+    # Tentativa 1: Buscar o padrão ideal em qualquer lugar do texto
+    texto_limpo_adicional = texto_completo_adicional.replace("/", "").replace(".", "").replace("-", "")
+    match_ideal = re.search(padrao_ideal, texto_limpo_adicional, re.IGNORECASE)
 
     if match_ideal:
         nome_processo = match_ideal.group(1)
     else:
-        match_processo = re.search(r'PROCESSO\s*:?\s*([A-Z0-9\./\s-]+)', texto_completo_adicional, re.IGNORECASE)
+        # Tentativa 2 (Fallback 1): Buscar "PROCESSO:" no texto principal
+        match_processo = re.search(r'PROCESSO\s*:?\s*(.+)', texto_completo_adicional, re.IGNORECASE) # Regex um pouco mais aberto para capturar
         if match_processo:
             texto_bruto = match_processo.group(1).strip()
-            nome_processo = re.split(r'[.,;\s]{2,}|$', texto_bruto)[0].strip()
+
+            # --- [INÍCIO DA CORREÇÃO 6 (Busca por Ano)] ---
+            # Tenta encontrar o ano (4 dígitos) no texto bruto
+            year_match = re.search(r'(\d{4})', texto_bruto)
+            
+            if year_match:
+                # Se encontrou o ano, pega o texto até o final do ano
+                end_pos = year_match.end()
+                nome_processo = texto_bruto[:end_pos].strip()
+            else:
+                # Se não encontrou o ano, usa a lógica antiga do split (para outros formatos)
+                nome_processo = re.split(r'[.,;\s]{2,}|$', texto_bruto)[0].strip()
+            # --- [FIM DA CORREÇÃO 6] ---
+                
         else:
+            # Tentativa 3 (Fallback 2): Buscar "PROCESSO:" nos itens
             for item_tag in find_all(inf_nfe_tag, 'det'):
                 inf_ad_prod_tag = find(item_tag, 'infAdProd')
                 if inf_ad_prod_tag is not None and inf_ad_prod_tag.text:
-                    match_item = re.search(r'(?:PROCESSO|REGISTRO):\s*([A-Z0-9\./\s-]+)', inf_ad_prod_tag.text, re.IGNORECASE)
+                    match_item = re.search(r'(?:PROCESSO|REGISTRO):\s*(.+)', inf_ad_prod_tag.text, re.IGNORECASE) # Regex aberto
                     if match_item:
-                        nome_processo = match_item.group(1).strip()
+                        texto_bruto_item = match_item.group(1).strip()
+
+                        # --- [INÍCIO DA CORREÇÃO 6 (Busca por Ano)] ---
+                        # Tenta encontrar o ano (4 dígitos) no texto bruto do item
+                        year_match_item = re.search(r'(\d{4})', texto_bruto_item)
+
+                        if year_match_item:
+                            # Se encontrou o ano, pega o texto até o final do ano
+                            end_pos_item = year_match_item.end()
+                            nome_processo = texto_bruto_item[:end_pos_item].strip()
+                        else:
+                            # Se não encontrou o ano, usa a lógica antiga do split
+                            nome_processo = re.split(r'[.,;\s]{2,}|$', texto_bruto_item)[0].strip()
+                        # --- [FIM DA CORREÇÃO 6] ---
                         break
     
     processo_normalizado = _normalize_processo(nome_processo)
@@ -216,22 +249,17 @@ def _extrair_dados_autorizada(root_xml, namespace, arquivo_xml):
         'valor_frete_nacional': valor_frete_nacional
     }
     
-    # --- [NOVO] Cria uma cópia de segurança dos dados originais ---
     dados['_dados_originais'] = dados.copy()
     
     return dados
 
-# --- [NOVA FUNÇÃO] Para criar dados de notas canceladas manualmente pelo nome do arquivo ---
 def _criar_dados_cancelamento_manual(arquivo_xml):
-    """Cria um dicionário de dados 'fantasma' para uma nota identificada como cancelada pelo nome do arquivo."""
     nome_base = os.path.basename(arquivo_xml)
-    
-    # Tenta extrair a chave de 44 dígitos do nome do arquivo
     chave_match = re.search(r'(\d{44})', nome_base)
     numero_nf = 'N/A'
     if chave_match:
         chave = chave_match.group(1)
-        numero_nf = chave[25:34] # Extrai o número da NF da chave
+        numero_nf = chave[25:34]
 
     dados = {
         'nome_arquivo': nome_base, 'numero_nf': numero_nf, 'cfop_nf': 'N/A',
@@ -243,7 +271,6 @@ def _criar_dados_cancelamento_manual(arquivo_xml):
         'razao_social_destinatario': 'N/A (Cancelada)', 'processo_normalizado': 'N/A',
         'valor_frete_nacional': 0.0
     }
-    # A cópia de segurança é a própria nota cancelada
     dados['_dados_originais'] = dados.copy()
     return dados
 
@@ -268,12 +295,10 @@ def _extrair_dados_cancelamento(root_xml, namespace, arquivo_xml):
         'razao_social_destinatario': 'N/A (Cancelada)', 'processo_normalizado': 'N/A',
         'valor_frete_nacional': 0.0
     }
-    # Adiciona a cópia para manter a estrutura consistente
     dados['_dados_originais'] = dados.copy()
     return dados
 
 def extrair_dados_nf(arquivo_xml):
-    # --- [NOVA LÓGICA] Verifica primeiro se o arquivo foi renomeado como cancelado ---
     nome_base = os.path.basename(arquivo_xml)
     if nome_base.upper().startswith('CANCELADA_'):
         logging.info(f"Arquivo identificado como cancelado pelo nome: {nome_base}")
@@ -305,13 +330,20 @@ def setup_headers(ws, headers):
     fill = PatternFill(start_color="FFFF00", end_color="FFFF00", fill_type="solid")
     alignment = Alignment(horizontal="center", vertical="center")
     border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+    text_format = '@' # Define o formato de texto padrão
+
     for col, title in enumerate(headers, 1):
         cell = ws.cell(row=1, column=col, value=title)
         cell.fill, cell.alignment, cell.border = fill, alignment, border
+        # --- INÍCIO DA CORREÇÃO 2 ---
+        cell.number_format = text_format
+        # --- FIM DA CORREÇÃO 2 ---
 
 def write_data_to_excel(ws, row_index, data, headers):
     border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
     currency_format = 'R$ #,##0.00'
+    text_format = '@' # Define o formato de texto padrão
+
     for col, header in enumerate(headers, 1):
         value_map = {
             'Arquivo': data.get('nome_arquivo'), 'Número da NF': data.get('numero_nf'), 'CFOP': data.get('cfop_nf'),
@@ -330,24 +362,44 @@ def write_data_to_excel(ws, row_index, data, headers):
         value = value_map.get(header, '')
         cell = ws.cell(row=row_index, column=col, value=value)
         cell.border = border
+        
+        # --- INÍCIO DA CORREÇÃO 1 (Mantida) ---
         if isinstance(value, (int, float)) and (header.startswith('Valor') or header in ['Outras Despesas', 'Valor AFRMM', 'Valor Serviço Trading', 'Frete Nacional']):
             cell.number_format = currency_format
+        else:
+            # Define o formato de TEXTO para todas as outras células
+            cell.number_format = text_format
+        # --- FIM DA CORREÇÃO 1 ---
 
 def add_totals_row(ws, headers):
     last_row = ws.max_row
     if last_row < 2: return
     totals_row = last_row + 1
+    
     total_font = Font(bold=True)
     total_fill = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
-    first_cell = ws.cell(row=totals_row, column=1, value="TOTAIS")
-    first_cell.font = total_font
-    first_cell.fill = total_fill
+    thin_border = Border(left=Side(style='thin'), right=Side(style='thin'), top=Side(style='thin'), bottom=Side(style='thin'))
+    currency_format = 'R$ #,##0.00'
+    text_format = '@' # Define o formato de texto padrão
+
     for col_idx, header in enumerate(headers, 1):
-        if header.startswith('Valor') or header in ['Outras Despesas', 'Valor AFRMM', 'Valor Serviço Trading', 'Frete Nacional']:
+        cell = ws.cell(row=totals_row, column=col_idx)
+        cell.font = total_font
+        cell.fill = total_fill
+        cell.border = thin_border
+        
+        if col_idx == 1:
+            cell.value = "TOTAIS"
+            cell.number_format = text_format
+        elif header.startswith('Valor') or header in ['Outras Despesas', 'Valor AFRMM', 'Valor Serviço Trading', 'Frete Nacional']:
             col_letter = get_column_letter(col_idx)
             formula = f"=SUM({col_letter}2:{col_letter}{last_row})"
-            cell = ws.cell(row=totals_row, column=col_idx, value=formula)
-            cell.font, cell.fill, cell.number_format = total_font, total_fill, 'R$ #,##0.00'
+            cell.value = formula
+            cell.number_format = currency_format
+        else:
+            # Esta seção já estava correta
+            cell.value = ""
+            cell.number_format = text_format
 
 def check_for_updates(current_version, repo_owner, repo_name):
     api_url = f"https://api.github.com/repos/{repo_owner}/{repo_name}/releases/latest"
@@ -398,7 +450,6 @@ def calcular_dados_dashboard(dados_extraidos):
     for nf in dados_extraidos:
         resumo['total_notas'] += 1
         
-        # --- [MODIFICADO] Lógica de contagem de notas canceladas aprimorada ---
         if 'Cancelada' in nf.get('status_nf', ''):
             resumo['notas_canceladas'] += 1
             continue

@@ -1,6 +1,6 @@
 # ===================================================================================
 # --- ARQUIVO: ui/frames_app.py ---
-# (Contém as telas principais da aplicação após o login)
+# (Corrigido o erro 'formatCode is None' nas abas de Serviço)
 # ===================================================================================
 
 import os
@@ -161,7 +161,6 @@ class NFeToolFrame(ttk.Frame):
             self.watermark_label_tool.config(image=self.watermark_image_tool); self.watermark_label_tool.place(relx=0.5, rely=0.45, anchor='center')
         except Exception as e: logging.warning(f"Não foi possível carregar a logo para a marca d'água: {e}")
     
-    # --- [FUNÇÃO RESTAURADA] ---
     def update_status(self, message):
         self.status_var.set(message)
         logging.info(message)
@@ -216,6 +215,7 @@ class NFeToolFrame(ttk.Frame):
             if dados['tipo_nota'] == "Saída": core_logic.write_data_to_excel(saida_ws, row_out, dados, cabecalhos); row_out += 1
             else: core_logic.write_data_to_excel(entrada_ws, row_in, dados, cabecalhos); row_in += 1
         core_logic.add_totals_row(entrada_ws, cabecalhos); core_logic.add_totals_row(saida_ws, cabecalhos); self.salvar_arquivo(wb, caminho_excel)
+
     def salvar_planilha_completa(self, contagens_confirmadas):
         if not self.dados_extraidos_em_memoria: messagebox.showerror("Erro", "Nenhum dado extraído."); return
         filename = self.controller.output_filename_pattern.format(data=datetime.now().strftime('%Y-%m-%d'))
@@ -230,6 +230,13 @@ class NFeToolFrame(ttk.Frame):
         cabecalhos_pendentes = cabecalhos_servico + ['Qtde Encontrada', 'Qtde Esperada', 'Qtde a Emitir']
         core_logic.setup_headers(entrada_ws, cabecalhos_completos); core_logic.setup_headers(saida_ws, cabecalhos_completos)
         core_logic.setup_headers(servico_ws, cabecalhos_servico); core_logic.setup_headers(pendentes_ws, cabecalhos_pendentes)
+        
+        # --- [INÍCIO DA CORREÇÃO] ---
+        # Define os formatos padrão aqui
+        currency_format = 'R$ #,##0.00'
+        text_format = '@'
+        # --- [FIM DA CORREÇÃO] ---
+
         row_in, row_out, row_serv, row_pend = 2, 2, 2, 2
         processos_saida = defaultdict(list)
         for dados in self.dados_extraidos_em_memoria:
@@ -243,22 +250,34 @@ class NFeToolFrame(ttk.Frame):
                 nfs_encontradas = len(processos_saida.get(processo, [])); esperada = contagens_confirmadas.get(processo, {}).get('esperado')
                 auth = (esperada is not None and nfs_encontradas == esperada) or (nfs_encontradas > 0 and processo not in contagens_confirmadas)
                 if auth:
-                    for col, val in enumerate(linha_serv, 1): servico_ws.cell(row=row_serv, column=col, value=val).number_format = 'R$ #,##0.00' if col == 6 else None
+                    # --- [INÍCIO DA CORREÇÃO 1] ---
+                    for col, val in enumerate(linha_serv, 1): 
+                        cell = servico_ws.cell(row=row_serv, column=col, value=val)
+                        cell.number_format = currency_format if col == 6 else text_format
+                    # --- [FIM DA CORREÇÃO 1] ---
                     row_serv += 1
                 else:
                     a_emitir = esperada - nfs_encontradas if esperada is not None else 'N/A'
                     linha_pend = linha_serv + [nfs_encontradas, esperada, a_emitir]
-                    for col, val in enumerate(linha_pend, 1): pendentes_ws.cell(row=row_pend, column=col, value=val).number_format = 'R$ #,##0.00' if col == 6 else None
+                    # --- [INÍCIO DA CORREÇÃO 2] ---
+                    for col, val in enumerate(linha_pend, 1): 
+                        cell = pendentes_ws.cell(row=row_pend, column=col, value=val)
+                        cell.number_format = currency_format if col == 6 else text_format
+                    # --- [FIM DA CORREÇÃO 2] ---
                     row_pend += 1
         core_logic.add_totals_row(entrada_ws, cabecalhos_completos); core_logic.add_totals_row(saida_ws, cabecalhos_completos)
         core_logic.add_totals_row(servico_ws, cabecalhos_servico); core_logic.add_totals_row(pendentes_ws, cabecalhos_pendentes)
         self.salvar_arquivo(wb, caminho_excel)
+
     def salvar_arquivo(self, wb, caminho):
         try:
             wb.save(caminho); self.update_status(f"Arquivo salvo!");
             if self.controller.ask_to_open_excel and messagebox.askyesno("Abrir", "Deseja abrir o arquivo?"): os.startfile(caminho)
         except Exception as e:
+            # --- [MODIFICADO] Adiciona o print(e) para diagnóstico ---
+            print(f"Erro detalhado ao salvar: {e}")
             self.update_status(f"Erro ao salvar."); logging.error(f"Erro ao salvar: {e}", exc_info=True); messagebox.showerror("Erro", f"Erro ao salvar o arquivo: {e}")
+
     def limpar_dados_e_interface(self):
         if messagebox.askyesno("Confirmação", "Limpar todos os dados?"):
             self.dados_extraidos_em_memoria.clear(); self.path_entry.delete(0, tk.END); self.progress_bar.config(value=0)

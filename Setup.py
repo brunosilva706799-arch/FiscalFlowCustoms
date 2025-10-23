@@ -52,7 +52,7 @@ executables = [
 # --- Comando Final de Setup ---
 setup(
     name="Customs Flow",
-    version="2.9.1",
+    version="2.9.2", # <--- VERSÃO ATUALIZADA
     description="Ferramenta de Comércio Exterior com módulos de Extração, DP e Suporte.",
     options={"build_exe": build_exe_options},
     executables=executables

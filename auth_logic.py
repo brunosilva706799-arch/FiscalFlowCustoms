@@ -56,7 +56,7 @@ def initialize_firebase():
             users_ref.add({
                 'username': 'dev', 
                 'password_hash': hashed_password.decode('utf-8'), 
-                'email': 'dev@fiscalflow.com', 
+                'email': 'dev@customsflow.com', # Nome atualizado
                 'level': 'Desenvolvedor',
                 'acesso_codigos_cliente': 'Total'
             })
@@ -64,30 +64,30 @@ def initialize_firebase():
         templates_to_check = {
             'account_creation': {
                 'name': 'E-mail de Criação de Conta',
-                'subject': "Configure sua conta no Fiscal Flow",
+                'subject': "Configure sua conta no Customs Flow",
                 'body': """
                 <html><body>
                 <h2>Olá, {username}!</h2>
-                <p>Seu cadastro no sistema Fiscal Flow foi iniciado. Para completar o processo, por favor, defina sua senha de acesso.</p>
+                <p>Seu cadastro no sistema Customs Flow foi iniciado. Para completar o processo, por favor, defina sua senha de acesso.</p>
                 <p>Na tela de login do programa, clique em "Primeiro Acesso / Definir Senha" e utilize o seguinte código de verificação:</p>
                 <h1 style="text-align:center; letter-spacing: 5px; font-size: 36px;">{token}</h1>
                 <p>Este código é válido por 24 horas.</p>
-                <br><p>Atenciosamente,<br>Equipe Fiscal Flow</p>
+                <br><p>Atenciosamente,<br>Equipe Customs Flow</p>
                 </body></html>
                 """
             },
             'password_reset': {
                 'name': 'E-mail de Redefinição de Senha',
-                'subject': "Seu código de redefinição de senha do Fiscal Flow",
+                'subject': "Seu código de redefinição de senha do Customs Flow",
                 'body': """
                 <html><body>
                 <h2>Olá, {username}!</h2>
-                <p>Recebemos uma solicitação para redefinir sua senha no sistema Fiscal Flow.</p>
+                <p>Recebemos uma solicitação para redefinir sua senha no sistema Customs Flow.</p>
                 <p>Utilize o código abaixo na tela "Redefinir Senha" do programa:</p>
                 <h1 style="text-align:center; letter-spacing: 5px; font-size: 36px;">{token}</h1>
                 <p>Se você não solicitou isso, pode ignorar este e-mail com segurança.</p>
                 <p>Este código é válido por 24 horas.</p>
-                <br><p>Atenciosamente,<br>Equipe Fiscal Flow</p>
+                <br><p>Atenciosamente,<br>Equipe Customs Flow</p>
                 </body></html>
                 """
             },
@@ -98,7 +98,7 @@ def initialize_firebase():
                 <html><body>
                 <h2>Olá, {username}!</h2>
                 <p>O seu chamado de suporte com o assunto "<b>{subject}</b>" recebeu uma nova resposta do atendente <b>{attendant_name}</b>.</p>
-                <p>Por favor, abra o Fiscal Flow para visualizar a resposta.</p>
+                <p>Por favor, abra o Customs Flow para visualizar a resposta.</p>
                 <br><p>Atenciosamente,<br>Equipe de Suporte</p>
                 </body></html>
                 """

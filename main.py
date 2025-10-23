@@ -1,5 +1,6 @@
 # =============================================================================
 # --- ARQUIVO: main.py (INTEGRADO COM PAINEL DE ATENDIMENTO) ---
+# (Versão atualizada para 2.9.2 e Release Notes adicionadas)
 # =============================================================================
 
 import os
@@ -46,13 +47,33 @@ import dp_logic
 import support_logic
 import client_logic
 import report_logic 
+# --- [CORRIGIDO] --- Adiciona a importação que estava faltando ---
+import drive_logic
 
 # --- CONSTANTES GLOBAIS ---
 APP_NAME = "CustomsFlow"
-CURRENT_VERSION = "2.9.1" 
+CURRENT_VERSION = "2.9.2" # <--- VERSÃO ATUALIZADA
 RELEASE_NOTES = """
+Versão 2.9.2 - Correções Críticas na Extração e Geração de Excel
+
+🐛 CORREÇÃO: Resolvido erro "formatCode should be NoneType" que impedia salvar planilhas Excel, garantindo a aplicação correta de formatos de número/texto em todas as células (afetava `core_logic.py` e `frames_app.py`).
+🐛 CORREÇÃO: Corrigido erro de sintaxe "invalid non-printable character U+00A0" que podia impedir a inicialização do programa (causado por erro na geração de código anterior).
+🐛 CORREÇÃO: Aprimorada a extração do 'Nome do Processo' em NFe. A lógica agora identifica corretamente o final do número do processo (baseado no ano) mesmo quando há texto adicional colado (ex: "...2025ICMS..."), evitando que "lixo" seja incluído (em `core_logic.py`).
+🐛 CORREÇÃO: Coluna 'Valor Serviço Trading' restaurada na janela de Pré-Visualização (abas Entrada/Saída), onde havia sido omitida acidentalmente (em `dialogs_flow.py`).
+
+--- VERSÕES ANTERIORES ---
+
 Versão 2.9.1 - Unificação de Suporte e Melhorias de Usabilidade
-(conteúdo das notas omitido para brevidade)
+
+✨ NOVO: Agora, os módulos de Suporte de T.I. e Suporte do Sistema possuem as mesmas funcionalidades, incluindo a triagem de chamados por prioridade (cores).
+
+🔧 MELHORIA: A janela do "Gerenciador de Códigos de Cliente" agora pode ser minimizada e maximizada como uma janela normal.
+
+🔧 MELHORIA: A funcionalidade de exclusão no Gerenciador de Códigos foi aprimorada e agora também está disponível através do menu de clique-direito.
+
+🔧 MELHORIA: Atalhos para os dois módulos de suporte foram adicionados à tela principal, com ícones que se adaptam dinamicamente à cor do tema.
+
+🐛 CORREÇÃO: A confirmação de saída agora funciona corretamente também ao clicar no botão "X" da janela principal.
 """
 REPO_OWNER = "brunosilva706799-arch"
 REPO_NAME = "CustomsFlow"
@@ -75,7 +96,6 @@ class App(ttk.Window):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
-        # --- [MODIFICADO] Passa a função 'resource_path' para os módulos de lógica ---
         auth_logic.set_resource_path_getter(self.resource_path)
         drive_logic.set_resource_path_getter(self.resource_path)
 
@@ -167,18 +187,14 @@ class App(ttk.Window):
         elif ticket_type == 'it' and user_level in ['T.I.', 'Admin', 'Desenvolvedor']: frame_to_show_name = "AdminTicketsFrame"
         frame = self.frames[frame_to_show_name]; frame.set_ticket_type(ticket_type); self.show_frame(frame_to_show_name)
     
-    # --- [MODIFICADO] Função aprimorada para ser compatível com macOS ---
     def resource_path(self, relative_path):
         """ Retorna o caminho absoluto para o recurso, funcionando para dev e app compilado. """
         try:
-            # PyInstaller/cx_Freeze cria uma pasta temp e armazena o caminho em _MEIPASS
             base_path = sys._MEIPASS
         except Exception:
             base_path = os.path.abspath(".")
 
-        # Para macOS, os recursos ficam em uma subpasta específica dentro do .app
         if sys.platform == "darwin" and getattr(sys, 'frozen', False):
-             # O executável fica em Contents/MacOS, os recursos em Contents/Resources
              return os.path.join(base_path, '..', 'Resources', relative_path)
              
         return os.path.join(base_path, relative_path)
